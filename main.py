@@ -45,13 +45,13 @@ HEADERS = {
 
 # read config from yaml
 try:
-    with open("config.local.yaml", "r", encoding="UTF-8") as f:
+    with open("config/config.local.yaml", "r", encoding="UTF-8") as f:
         CONFIG = yaml.load(f, Loader=yaml.FullLoader)
 except FileNotFoundError:
     print("❗️ ERR: config.local.yaml not found")
     sys.exit(1)
 
-db = SqliteDict("db.sqlite")
+db = SqliteDict("storage/db.sqlite")
 
 
 def get_and_send(name, lat, long, chat_id, threshold=0):

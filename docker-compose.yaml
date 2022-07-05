@@ -1,0 +1,14 @@
+version: "3.9"
+
+services:
+  goshne:
+    container_name: goshne_app
+    build:
+     context: .
+     cache_from:
+       - goshne:latest
+    image: goshne:latest
+    command: ["python", "main.py"]
+    volumes:
+      - ./storage:/usr/src/app/storage:rw
+      - ./config:/usr/src/app/config:ro
