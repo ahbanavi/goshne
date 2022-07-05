@@ -8,6 +8,7 @@ import pytz
 from sqlitedict import SqliteDict
 import yaml
 import sys
+import random
 
 load_dotenv()
 
@@ -15,6 +16,10 @@ local_tz = pytz.timezone("Asia/Tehran")
 
 TOMAN_FORMATTER = "{:,}"
 TEST = len(sys.argv) > 1 and sys.argv[1] == "-t"
+
+# load emojist from resource/food-emojis.json
+with open("resource/food-emojis.json", encoding="UTF-8") as f:
+    FOOD_EMOJIS = json.load(f)
 
 HEADERS = {
     "Accept": "application/json",
@@ -80,29 +85,33 @@ def get_and_send(name, lat, long, chat_id, threshold=0):
                     "time": datetime.now(local_tz),
                 }
 
-            url = "https://snappfood.ir/restaurant/menu/" + product["vendorCode"]
-            out = "[" + product["title"] + "](" + url + ")\n"
-            out += product["vendorTypeTitle"] + " " + product["vendorTitle"] + "\n"
-            out += "تخفیف: " + str(product["discountRatio"]) + "%\n"
-            out += "قیمت: " + TOMAN_FORMATTER.format(product["price"]) + " تومان\n"
+            vendor_url = "https://snappfood.ir/restaurant/menu/" + product["vendorCode"]
+            out = (
+                "[" + random.choice(FOOD_EMOJIS) + " " + product["title"] + "](" + vendor_url + ")\n"
+            )
             out += (
-                "با تخفیف: "
+                "🍽 " + product["vendorTypeTitle"] + " " + product["vendorTitle"] + "\n"
+            )
+            out += "💯 تخفیف: *" + str(product["discountRatio"]) + "%*\n"
+            out += "💵 قیمت: *" + TOMAN_FORMATTER.format(product["price"]) + "* تومان\n"
+            out += (
+                "💸 با تخفیف: *"
                 + TOMAN_FORMATTER.format(int(priceAfterDiscount))
-                + " تومان\n"
+                + "* تومان\n"
             )
             out += (
-                "هزینه ارسال: "
+                "🛵 ارسال: *"
                 + TOMAN_FORMATTER.format(int(product["deliveryFee"]))
-                + " تومان\n"
+                + "* تومان\n"
             )
             out += (
-                "امتیاز: "
+                "⭐️ امتیاز: "
                 + str(product["rating"])
                 + " از "
                 + str(product["vote_count"])
                 + " رای \n"
             )
-            out += "باقیمانده: " + str(product["remaining"]) + "\n"
+            out += "⌛ باقیمانده: " + str(product["remaining"]) + "\n"
 
             # send photo
             requests.post(
@@ -111,9 +120,22 @@ def get_and_send(name, lat, long, chat_id, threshold=0):
                 + "/sendPhoto",
                 data={
                     "chat_id": chat_id,
-                    "photo": product["image"],
+                    "photo": product["main_image"],
                     "caption": out,
                     "parse_mode": "Markdown",
+                    # add inline button
+                    "reply_markup": json.dumps(
+                        {
+                            "inline_keyboard": [
+                                [
+                                    {
+                                        "text": "🛒 خرید",
+                                        "url": vendor_url,
+                                    }
+                                ]
+                            ]
+                        }
+                    ),
                 },
             )
 
