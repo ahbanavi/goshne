@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 import pytz
 from sqlitedict import SqliteDict
 import yaml
+import sys
 
 load_dotenv()
 
@@ -32,8 +33,14 @@ HEADERS = {
 }
 
 # read config from yaml
-with open("config.local.yaml", "r", encoding='UTF-8') as f:
-    CONFIG = yaml.load(f, Loader=yaml.FullLoader)
+try:
+    with open("config.local.yaml", "r", encoding="UTF-8") as f:
+        CONFIG = yaml.load(f, Loader=yaml.FullLoader)
+except FileNotFoundError:
+    print(
+        "❗️ ERR: `config.local.yaml` not found, consider creating one based on `config.local.yaml.example`"
+    )
+    sys.exit(1)
 
 db = SqliteDict("db.sqlite")
 
@@ -52,7 +59,7 @@ def get_and_send(name, lat, long, chat_id, threshold=0):
             )
 
             PRODUCT_HASH = hashlib.md5(
-                name.encode('utf-8')
+                name.encode("utf-8")
                 + product["title"].encode("utf-8")
                 + str(priceAfterDiscount).encode("utf-8")
                 + product["vendorTitle"].encode("utf-8")
@@ -99,9 +106,9 @@ def get_and_send(name, lat, long, chat_id, threshold=0):
             # send photo
             requests.post(
                 "https://api.telegram.org/bot"
-                + CONFIG['telegram']['token']
+                + CONFIG["telegram"]["token"]
                 + "/sendPhoto",
-                data = {
+                data={
                     "chat_id": chat_id,
                     "photo": product["image"],
                     "caption": out,
@@ -109,15 +116,16 @@ def get_and_send(name, lat, long, chat_id, threshold=0):
                 },
             )
 
+
 # for each person in config peoples get_and_send
-for person_name in CONFIG['peoples']:
-    person = CONFIG['peoples'][person_name]
+for person_name in CONFIG["peoples"]:
+    person = CONFIG["peoples"][person_name]
     get_and_send(
         name=person_name,
-        lat=person['lat'],
-        long=person['long'],
-        chat_id=person['chat_id'],
-        threshold=person.get('threshold', 0),
+        lat=person["lat"],
+        long=person["long"],
+        chat_id=person["chat_id"],
+        threshold=person.get("threshold", 0),
     )
 
 # store db
