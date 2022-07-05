@@ -161,6 +161,7 @@ if TEST:
     main()
     sys.exit(0)
 
+print("Running app every 15 minutes...")
 schedule.every(15).minutes.do(main)
 
 while 1:
