@@ -3,11 +3,11 @@ import json
 import os
 from dotenv import load_dotenv
 import hashlib
-from datetime import datetime
+from datetime import datetime, timedelta
 import pytz
+from sqlitedict import SqliteDict
 
 load_dotenv()
-
 
 local_tz = pytz.timezone("Asia/Tehran")
 now = datetime.now(local_tz).date()
@@ -16,21 +16,34 @@ FILE_NAME = ".data/" + str(now) + ".json"
 TOMAN_FORMATTER = "{:,}"
 LAT = os.getenv("LAT")
 LONG = os.getenv("LONG")
-URL = "https://foodparty.zoodfood.com/676858d198d35e7713a47e66ba0755c8/mobile-offers/{LAT}/{LONG}?lat={LAT}&long={LONG}&optionalClient=WEBSITE&client=WEBSITE&deviceType=WEBSITE&appVersion=8.1.1&front_id=food-party-100288&page=0&superType=1&segments=%7B%7D&locale=fa"
+URL = f"https://foodparty.zoodfood.com/676858d198d35e7713a47e66ba0755c8/mobile-offers/{LAT}/{LONG}?lat={LAT}&long={LONG}&optionalClient=WEBSITE&client=WEBSITE&deviceType=WEBSITE&appVersion=8.1.1&front_id=food-party-100288&page=0&superType=1&segments=%7B%7D&locale=fa"
 
 # get data from api
 def get_data(url):
-    response = requests.get(url)
+    headers = {
+        "Accept": "application/json",
+        "Accept-Encoding": "gzip",
+        "Accept-Language": "en-US,en;q=0.5",
+        "Connection": "keep-alive",
+        "Content-Type": "application/x-www-form-urlencoded",
+        "DNT": "1",
+        "Host": "foodparty.zoodfood.com",
+        "Origin": "https://snappfood.ir",
+        "Referer": "https://snappfood.ir",
+        "Sec-Fetch-Dest": "empty",
+        "Sec-Fetch-Mode": "cors",
+        "Sec-Fetch-Site": "cross-site",
+        "TE": "trailers",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101 Firefox/102.0",
+    }
+    response = requests.get(url, headers=headers)
     data = response.json()
     return data
 
+
 products = get_data(URL)["data"]["products"]
 
-try:
-    with open(FILE_NAME, "r", encoding="UTF-8") as f:
-        db = json.load(f)
-except FileNotFoundError:
-    db = []
+db = SqliteDict("db.sqlite")
 
 for product in products:
     if product["discountRatio"] >= int(os.getenv("DISCOUNT_THRESHOLD")):
@@ -44,9 +57,16 @@ for product in products:
         ).hexdigest()
         # check if product is already in db
         if PRODUCT_HASH in db:
-            continue
+            if datetime.now(local_tz) - db[PRODUCT_HASH]["time"] < timedelta(days=1):
+                continue
+            else:
+                db[PRODUCT_HASH] = {
+                    "time": datetime.now(local_tz),
+                }
         else:
-            db.append(PRODUCT_HASH)
+            db[PRODUCT_HASH] = {
+                "time": datetime.now(local_tz),
+            }
 
         url = "https://snappfood.ir/restaurant/menu/" + product["vendorCode"]
         out = "[" + product["title"] + "](" + url + ")\n"
@@ -84,5 +104,5 @@ for product in products:
         )
 
 # store db
-with open(FILE_NAME, "w", encoding="UTF-8") as f:
-    json.dump(db, f)
+db.commit()
+db.close()
