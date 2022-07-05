@@ -1,14 +1,17 @@
-import requests
-import json
-import os
-from dotenv import load_dotenv
+"""Goshne!
+"""
+
 import hashlib
-from datetime import datetime, timedelta
-import pytz
-from sqlitedict import SqliteDict
-import yaml
-import sys
+import json
 import random
+import sys
+from datetime import datetime, timedelta
+
+import pytz
+import requests
+import yaml
+from dotenv import load_dotenv
+from sqlitedict import SqliteDict
 
 load_dotenv()
 
@@ -35,7 +38,7 @@ HEADERS = {
     "Sec-Fetch-Mode": "cors",
     "Sec-Fetch-Site": "cross-site",
     "TE": "trailers",
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101 Firefox/102.0",
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101 Firefox/102.0",  # noqa
 }
 
 # read config from yaml
@@ -43,16 +46,24 @@ try:
     with open("config.local.yaml", "r", encoding="UTF-8") as f:
         CONFIG = yaml.load(f, Loader=yaml.FullLoader)
 except FileNotFoundError:
-    print(
-        "❗️ ERR: `config.local.yaml` not found, consider creating one based on `config.local.yaml.example`"
-    )
+    print("❗️ ERR: config.local.yaml not found")
     sys.exit(1)
 
 db = SqliteDict("db.sqlite")
 
 
 def get_and_send(name, lat, long, chat_id, threshold=0):
-    url = f"https://foodparty.zoodfood.com/676858d198d35e7713a47e66ba0755c8/mobile-offers/{lat}/{long}?lat={lat}&long={long}&optionalClient=WEBSITE&client=WEBSITE&deviceType=WEBSITE&appVersion=8.1.1&front_id=food-party-100288&page=0&superType=1&segments=%7B%7D&locale=fa"
+    """get data from snapp based on inputs and send to telegram
+
+    Args:
+        name (string): name of person, used for creating hash
+        lat (string): latitude
+        long (string): longitude
+        chat_id (int): telegram chat id to send to
+        threshold (int, optional): threshold for getting discounts, default is 0
+    """
+
+    url = f"https://foodparty.zoodfood.com/676858d198d35e7713a47e66ba0755c8/mobile-offers/{lat}/{long}?lat={lat}&long={long}&optionalClient=WEBSITE&client=WEBSITE&deviceType=WEBSITE&appVersion=8.1.1&front_id=food-party-100288&page=0&superType=1&segments=%7B%7D&locale=fa"  # noqa
 
     response = requests.get(url, headers=HEADERS).json()
     if "error" in response:
@@ -63,66 +74,43 @@ def get_and_send(name, lat, long, chat_id, threshold=0):
 
     for product in products:
         if product["discountRatio"] >= threshold:
-            priceAfterDiscount = (
+            discount_price = (
                 product["price"] * (100 - product["discountRatio"]) / 100
             )
 
-            PRODUCT_HASH = hashlib.md5(
+            product_hash = hashlib.md5(
                 name.encode("utf-8")
                 + product["title"].encode("utf-8")
-                + str(priceAfterDiscount).encode("utf-8")
+                + str(discount_price).encode("utf-8")
                 + product["vendorTitle"].encode("utf-8")
             ).hexdigest()
 
-            if not TEST and PRODUCT_HASH in db:
-                if datetime.now(local_tz) - db[PRODUCT_HASH]["time"] < timedelta(
+            if not TEST and product_hash in db:
+                if datetime.now(local_tz) - db[product_hash]["time"] < timedelta(
                     days=1
                 ):
                     continue
                 else:
-                    db[PRODUCT_HASH] = {
+                    db[product_hash] = {
                         "time": datetime.now(local_tz),
                     }
             else:
-                db[PRODUCT_HASH] = {
+                db[product_hash] = {
                     "time": datetime.now(local_tz),
                 }
 
             vendor_url = "https://snappfood.ir/restaurant/menu/" + product["vendorCode"]
-            out = (
-                "["
-                + random.choice(FOOD_EMOJIS)
-                + " "
-                + product["title"]
-                + "]("
-                + vendor_url
-                + ")\n"
-            )
-            out += (
-                "🍽 " + product["vendorTypeTitle"] + " " + product["vendorTitle"] + "\n"
-            )
-            out += "💯 تخفیف: *" + str(product["discountRatio"]) + "%*\n"
-            out += "💵 قیمت: *" + TOMAN_FORMATTER.format(product["price"]) + "* تومان\n"
-            out += (
-                "💸 با تخفیف: *"
-                + TOMAN_FORMATTER.format(int(priceAfterDiscount))
-                + "* تومان\n"
-            )
-            out += (
-                "🛵 ارسال: *"
-                + TOMAN_FORMATTER.format(int(product["deliveryFee"]))
-                + "* تومان\n"
-            )
-            out += (
-                "⭐️ امتیاز: "
-                + str(product["rating"])
-                + " از "
-                + str(product["vote_count"])
-                + " رای \n"
-            )
-            out += "⌛ باقیمانده: " + str(product["remaining"]) + "\n"
+            # fmt: off
+            out = "[" + random.choice(FOOD_EMOJIS) + " " + product["title"] + "](" + vendor_url+ ")\n" # noqa
+            out += "🍽 " + product["vendorTypeTitle"] + " " + product["vendorTitle"] + "\n"
+            out += "🛍 ‏*" + str(product["discountRatio"]) + "%*\n"
+            out += "💵 *" + TOMAN_FORMATTER.format(product["price"]) + "* ت\n"
+            out += "💸 *" + TOMAN_FORMATTER.format(int(discount_price)) + "* ت (" + TOMAN_FORMATTER.format(int(discount_price - product["price"])) + ")\n" # noqa
+            out += "🛵 *" + TOMAN_FORMATTER.format(int(product["deliveryFee"])) + "* تومان\n"
+            out += "⭐️ " + str(product["rating"]) + " از " + str(product["vote_count"]) + " رای \n"
+            out += "⌛ ‏" + str(product["remaining"]) + "\n"
+            # fmt: on
 
-            # send photo
             requests.post(
                 "https://api.telegram.org/bot"
                 + CONFIG["telegram"]["token"]
