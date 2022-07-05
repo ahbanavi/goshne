@@ -1,6 +1,9 @@
 telegram:
   token: token # required - string
 
+schedule:
+  mins: 15
+
 peoples:
   name-of-person: # at least one person is required, string
     chat_id: chat_id # required - integer

@@ -154,15 +154,14 @@ def main():
 
     # store db
     db.commit()
-    db.close()
 
 
 if TEST:
     main()
     sys.exit(0)
 
-print("Running app every 15 minutes...")
-schedule.every(15).minutes.do(main)
+print(f"Running app every {CONFIG['schedule']['mins']} minutes...")
+schedule.every(CONFIG["schedule"]["mins"]).minutes.do(main)
 
 while 1:
     n = schedule.idle_seconds()
@@ -173,3 +172,5 @@ while 1:
         # sleep exactly the right amount of time
         time.sleep(n)
     schedule.run_pending()
+
+db.close()
