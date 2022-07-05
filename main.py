@@ -14,6 +14,7 @@ load_dotenv()
 local_tz = pytz.timezone("Asia/Tehran")
 
 TOMAN_FORMATTER = "{:,}"
+TEST = len(sys.argv) > 1 and sys.argv[1] == "-t"
 
 HEADERS = {
     "Accept": "application/json",
@@ -65,7 +66,7 @@ def get_and_send(name, lat, long, chat_id, threshold=0):
                 + product["vendorTitle"].encode("utf-8")
             ).hexdigest()
 
-            if PRODUCT_HASH in db:
+            if not TEST and PRODUCT_HASH in db:
                 if datetime.now(local_tz) - db[PRODUCT_HASH]["time"] < timedelta(
                     days=1
                 ):
@@ -127,6 +128,9 @@ for person_name in CONFIG["peoples"]:
         chat_id=person["chat_id"],
         threshold=person.get("threshold", 0),
     )
+
+    if TEST:
+        break
 
 # store db
 db.commit()
