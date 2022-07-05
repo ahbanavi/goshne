@@ -1,16 +1,16 @@
-bot:
-  api-token: token # required - string
+telegram:
+  token: token # required - string
 
 peoples:
   name-of-person: # at least one person is required, string
     chat_id: chat_id # required - integer
     lat: lat # required - string
     long: long # required - string
-    discount_treshold: 30 # optional - integer, defaults to 0
+    threshold: 30 # optional - integer, defaults to 0
   
   # more people can be added here
   name-of-another-person:
     chat_id: chat_id
     lat: lat
     long: long
-    discount_treshold: 30
+    threshold: 30

@@ -5,10 +5,12 @@ import hashlib
 import json
 import random
 import sys
+import time
 from datetime import datetime, timedelta
 
 import pytz
 import requests
+import schedule
 import yaml
 from dotenv import load_dotenv
 from sqlitedict import SqliteDict
@@ -74,9 +76,7 @@ def get_and_send(name, lat, long, chat_id, threshold=0):
 
     for product in products:
         if product["discountRatio"] >= threshold:
-            discount_price = (
-                product["price"] * (100 - product["discountRatio"]) / 100
-            )
+            discount_price = product["price"] * (100 - product["discountRatio"]) / 100
 
             product_hash = hashlib.md5(
                 name.encode("utf-8")
@@ -105,9 +105,9 @@ def get_and_send(name, lat, long, chat_id, threshold=0):
             out += "🍽 " + product["vendorTypeTitle"] + " " + product["vendorTitle"] + "\n"
             out += "🛍 ‏*" + str(product["discountRatio"]) + "%*\n"
             out += "💵 *" + TOMAN_FORMATTER.format(product["price"]) + "* ت\n"
-            out += "💸 *" + TOMAN_FORMATTER.format(int(discount_price)) + "* ت (" + TOMAN_FORMATTER.format(int(discount_price - product["price"])) + ")\n" # noqa
+            out += "💸 *" + TOMAN_FORMATTER.format(int(discount_price)) + "* ت (" + TOMAN_FORMATTER.format(int(product["price"] - discount_price)) + "-)\n" # noqa
             out += "🛵 *" + TOMAN_FORMATTER.format(int(product["deliveryFee"])) + "* تومان\n"
-            out += "⭐️ " + str(product["rating"]) + " از " + str(product["vote_count"]) + " رای \n"
+            out += "⭐️ " + str(round(product["rating"], 2)) + " از " + str(product["vote_count"]) + " رای \n"
             out += "⌛ ‏" + str(product["remaining"]) + "\n"
             # fmt: on
 
@@ -138,19 +138,37 @@ def get_and_send(name, lat, long, chat_id, threshold=0):
 
 
 # for each person in config peoples get_and_send
-for person_name in CONFIG["peoples"]:
-    person = CONFIG["peoples"][person_name]
-    get_and_send(
-        name=person_name,
-        lat=person["lat"],
-        long=person["long"],
-        chat_id=person["chat_id"],
-        threshold=person.get("threshold", 0),
-    )
+def main():
+    for person_name in CONFIG["peoples"]:
+        person = CONFIG["peoples"][person_name]
+        get_and_send(
+            name=person_name,
+            lat=person["lat"],
+            long=person["long"],
+            chat_id=person["chat_id"],
+            threshold=person.get("threshold", 0),
+        )
 
-    if TEST:
+        if TEST:
+            break
+
+    # store db
+    db.commit()
+    db.close()
+
+
+if TEST:
+    main()
+    sys.exit(0)
+
+schedule.every(15).minutes.do(main)
+
+while 1:
+    n = schedule.idle_seconds()
+    if n is None:
+        # no more jobs
         break
-
-# store db
-db.commit()
-db.close()
+    elif n > 0:
+        # sleep exactly the right amount of time
+        time.sleep(n)
+    schedule.run_pending()
