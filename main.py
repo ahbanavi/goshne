@@ -55,6 +55,9 @@ def get_and_send(name, lat, long, chat_id, threshold=0):
     url = f"https://foodparty.zoodfood.com/676858d198d35e7713a47e66ba0755c8/mobile-offers/{lat}/{long}?lat={lat}&long={long}&optionalClient=WEBSITE&client=WEBSITE&deviceType=WEBSITE&appVersion=8.1.1&front_id=food-party-100288&page=0&superType=1&segments=%7B%7D&locale=fa"
 
     response = requests.get(url, headers=HEADERS).json()
+    if "error" in response:
+        print(f"❗️ ERR: {response['error']}")
+        sys.exit(1)
 
     products = response["data"]["products"]
 
@@ -87,7 +90,13 @@ def get_and_send(name, lat, long, chat_id, threshold=0):
 
             vendor_url = "https://snappfood.ir/restaurant/menu/" + product["vendorCode"]
             out = (
-                "[" + random.choice(FOOD_EMOJIS) + " " + product["title"] + "](" + vendor_url + ")\n"
+                "["
+                + random.choice(FOOD_EMOJIS)
+                + " "
+                + product["title"]
+                + "]("
+                + vendor_url
+                + ")\n"
             )
             out += (
                 "🍽 " + product["vendorTypeTitle"] + " " + product["vendorTitle"] + "\n"
