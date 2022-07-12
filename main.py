@@ -70,7 +70,7 @@ def get_and_send(name, lat, long, chat_id, threshold=0):
     response = requests.get(url, headers=HEADERS).json()
     if "error" in response:
         print(f"❗️ ERR: {response['error']}")
-        sys.exit(1)
+        return False
 
     products = response["data"]["products"]
 
@@ -139,21 +139,24 @@ def get_and_send(name, lat, long, chat_id, threshold=0):
 
 # for each person in config peoples get_and_send
 def main():
-    for person_name in CONFIG["peoples"]:
-        person = CONFIG["peoples"][person_name]
-        get_and_send(
-            name=person_name,
-            lat=person["lat"],
-            long=person["long"],
-            chat_id=person["chat_id"],
-            threshold=person.get("threshold", 0),
-        )
+    try:
+        for person_name in CONFIG["peoples"]:
+            person = CONFIG["peoples"][person_name]
+            get_and_send(
+                name=person_name,
+                lat=person["lat"],
+                long=person["long"],
+                chat_id=person["chat_id"],
+                threshold=person.get("threshold", 0),
+            )
 
-        if TEST:
-            break
+            if TEST:
+                break
 
-    # store db
-    db.commit()
+        # store db
+        db.commit()
+    except:
+        return False
 
 
 if TEST:
