@@ -106,7 +106,7 @@ def get_and_send(name, lat, long, chat_id, threshold=0):
             out += "🛍 ‏*" + str(product["discountRatio"]) + "%*\n"
             out += "💵 *" + TOMAN_FORMATTER.format(product["price"]) + "* ت\n"
             out += "💸 *" + TOMAN_FORMATTER.format(int(discount_price)) + "* ت (" + TOMAN_FORMATTER.format(int(product["price"] - discount_price)) + "-)\n" # noqa
-            out += "🛵 *" + TOMAN_FORMATTER.format(int(product["deliveryFee"])) + "* تومان\n"
+            out += "🛵 *" + TOMAN_FORMATTER.format(int(product["deliveryFee"])) + "* ت\n"
             out += "⭐️ " + str(round(product["rating"], 2)) + " از " + str(product["vote_count"]) + " رای \n"
             out += "⌛ ‏" + str(product["remaining"]) + "\n"
             # fmt: on
