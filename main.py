@@ -65,12 +65,28 @@ def get_and_send(name, lat, long, chat_id, threshold=0):
         threshold (int, optional): threshold for getting discounts, default is 0
     """
 
-    url = f"https://foodparty.zoodfood.com/676858d198d35e7713a47e66ba0755c8/mobile-offers/{lat}/{long}?lat={lat}&long={long}&optionalClient=WEBSITE&client=WEBSITE&deviceType=WEBSITE&appVersion=8.1.1&front_id=food-party-100288&page=0&superType=1&segments=%7B%7D&locale=fa"  # noqa
+    home_url = f"https://snappfood.ir/search/api/v1/desktop/new-home?lat={lat}&long={long}&optionalClient=WEBSITE&client=WEBSITE&deviceType=WEBSITE&appVersion=8.1.1&locale=fa"
 
-    response = requests.get(url, headers=HEADERS).json()
+    # get home page
+    home_page = requests.get(home_url, headers=HEADERS)
+    home_data = home_page.json()
+    if "error" in home_data:
+        print(f"❗️ ERR: {home_data['error']}")
+        return False
+    
+    # get party_url
+    party_url = home_data["data"]["result"][1]["data"]["url"]
+
+    # url = f"https://foodparty.zoodfood.com/676858d198d35e7713a47e66ba0755c8/mobile-offers/{lat}/{long}?lat={lat}&long={long}&optionalClient=WEBSITE&client=WEBSITE&deviceType=WEBSITE&appVersion=8.1.1&front_id=food-party-100288&page=0&superType=1&segments=%7B%7D&locale=fa"  # noqa
+
+    response = requests.get(party_url, headers=HEADERS).json()
     if "error" in response:
         print(f"❗️ ERR: {response['error']}")
         return False
+
+    party_title = response["data"]["title"]
+    # extract hashtag, replace all none words with _
+    party_hashtag = "#" + "\_".join(party_title.split())
 
     products = response["data"]["products"]
 
@@ -101,7 +117,7 @@ def get_and_send(name, lat, long, chat_id, threshold=0):
 
             vendor_url = "https://snappfood.ir/restaurant/menu/" + product["vendorCode"]
             # fmt: off
-            out = "[" + random.choice(FOOD_EMOJIS) + " " + product["title"] + "](" + vendor_url+ ")\n" # noqa
+            out = random.choice(FOOD_EMOJIS) + " " + party_hashtag + " [" + product["title"] + "](" + vendor_url+ ")\n" # noqa
             out += "🍽 " + product["vendorTypeTitle"] + " " + product["vendorTitle"] + "\n"
             out += "🛍 ‏*" + str(product["discountRatio"]) + "%*\n"
             out += "💵 *" + TOMAN_FORMATTER.format(product["price"]) + "* ت\n"
