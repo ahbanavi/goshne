@@ -73,7 +73,10 @@ def get_and_send(name, lat, long, chat_id, threshold=0):
     if "error" in home_data:
         print(f"❗️ ERR: {home_data['error']}")
         return False
-    
+
+    if home_data["data"]["result"][1]["id"] != 8:
+        return False
+
     # get party_url
     party_url = home_data["data"]["result"][1]["data"]["url"]
 
