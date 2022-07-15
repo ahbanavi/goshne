@@ -106,7 +106,7 @@ def get_and_send(name, lat, long, chat_id, threshold=0):
 
             if not TEST and product_hash in db:
                 if datetime.now(local_tz) - db[product_hash]["time"] < timedelta(
-                    days=1
+                    hours=12
                 ):
                     continue
                 else:
