@@ -1,0 +1,5 @@
+pytz==2022.1
+sqlitedict~=2.0.0
+PyYAML~=6.0
+requests~=2.28.1
+schedule~=1.1.0

@@ -1,0 +1,12 @@
+version: "3.9"
+
+services:
+  goshne:
+    container_name: goshne_app
+    environment:
+      - PYTHONUNBUFFERED=1
+    image: ghcr.io/ahbanavi/goshne:latest
+    command: ["python", "main.py"]
+    volumes:
+      - ./storage:/usr/src/app/storage:rw
+      - ./config:/usr/src/app/config:ro
