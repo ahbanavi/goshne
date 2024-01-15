@@ -62,11 +62,13 @@ def get_and_send(name, lat, long, chat_id, threshold=0):
     # get home page
     HEADERS["Host"] = "snappfood.ir"
     print(f"🕒 Downloading Offers for {name}")
-    home_page = requests.get(home_url, headers=HEADERS,timeout=CONFIG['timeout'])
+    home_page = requests.get(home_url, headers=HEADERS, timeout=CONFIG["timeout"])
     if home_page.status_code != 200:
         print(f"❗️ ERR: {home_page.status_code}")
         if home_page.status_code == 403:
-            print(f"❗️ ERR: Our IP Address is blocked by Snappfood, please change your IP Address and try again")
+            print(
+                f"❗️ ERR: Our IP Address is blocked by Snappfood, please change your IP Address and try again"
+            )
             exit(254)
         return False
     home_data = home_page.json()
@@ -83,7 +85,9 @@ def get_and_send(name, lat, long, chat_id, threshold=0):
     # override Host header based on party_url
     HEADERS["Host"] = party_url.split("/")[2]
     print(f"🕒 Extracting Party Foods")
-    response = requests.get(party_url, headers=HEADERS,timeout=CONFIG['timeout']).json()
+    response = requests.get(
+        party_url, headers=HEADERS, timeout=CONFIG["timeout"]
+    ).json()
     if "error" in response:
         print(f"❗️ ERR: {response['error']}")
         return False
@@ -153,7 +157,7 @@ def get_and_send(name, lat, long, chat_id, threshold=0):
                         }
                     ),
                 },
-                timeout=CONFIG['timeout']
+                timeout=CONFIG["timeout"],
             )
 
 
@@ -184,7 +188,9 @@ if TEST:
     main()
 
 else:
-    print(f"Running app every {CONFIG['schedule']['mins']} minutes... with Http Timeout of {CONFIG['timeout']} seconds")
+    print(
+        f"Running app every {CONFIG['schedule']['mins']} minutes... with Http Timeout of {CONFIG['timeout']} seconds"
+    )
     schedule.every(CONFIG["schedule"]["mins"]).minutes.do(main)
     main()
     while 1:
