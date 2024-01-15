@@ -85,6 +85,8 @@ telegram:
 schedule:
     mins: 15 # The interval in minutes at which the bot will check for discounts.
 
+timeout: 10 # The timeout in seconds for HTTP requests. This is optional and defaults to 10 seconds.
+
 peoples: # At least one person is required.
     person_name: # The name of a person to send deals to. It can be anything you want and doesn't have any effect on the bot's functionality, but should be unique and string.
         chat_id: chat_id # The telegram chat id that the bot will send deals to. This is required and should be integer, you can find it with the help of https://t.me/username_to_id_bot.
