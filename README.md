@@ -66,7 +66,7 @@ pip3 install -r requirements.txt
 1. Run Goshne:
 
 ```bash
-python main.py
+python3 main.py
 ```
 
 Goshne is now up and running, you can cancel it with `Ctrl+C` at any time.
