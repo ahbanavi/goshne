@@ -1,5 +1,6 @@
 telegram:
   token: token # required - string
+  endpoint: https://api.telegram.org/bot # optional - string, defaults to https://api.telegram.org/bot, token will be appended to this
 
 schedule:
   mins: 15

@@ -1,6 +1,3 @@
-"""Goshne!
-"""
-
 import hashlib
 import json
 import random
@@ -12,10 +9,7 @@ import pytz
 import requests
 import schedule
 import yaml
-from dotenv import load_dotenv
 from sqlitedict import SqliteDict
-
-load_dotenv()
 
 local_tz = pytz.timezone("Asia/Tehran")
 
@@ -33,7 +27,6 @@ HEADERS = {
     "Connection": "keep-alive",
     "Content-Type": "application/x-www-form-urlencoded",
     "DNT": "1",
-    "Host": "foodparty.zoodfood.com",
     "Origin": "https://snappfood.ir",
     "Referer": "https://snappfood.ir",
     "Sec-Fetch-Dest": "empty",
@@ -68,6 +61,7 @@ def get_and_send(name, lat, long, chat_id, threshold=0):
     home_url = f"https://snappfood.ir/search/api/v1/desktop/new-home?lat={lat}&long={long}&optionalClient=WEBSITE&client=WEBSITE&deviceType=WEBSITE&appVersion=8.1.1&locale=fa"
 
     # get home page
+    HEADERS["Host"] = "snappfood.ir"
     home_page = requests.get(home_url, headers=HEADERS)
     home_data = home_page.json()
     if "error" in home_data:
@@ -80,8 +74,8 @@ def get_and_send(name, lat, long, chat_id, threshold=0):
     # get party_url
     party_url = home_data["data"]["result"][1]["data"]["url"]
 
-    # url = f"https://foodparty.zoodfood.com/676858d198d35e7713a47e66ba0755c8/mobile-offers/{lat}/{long}?lat={lat}&long={long}&optionalClient=WEBSITE&client=WEBSITE&deviceType=WEBSITE&appVersion=8.1.1&front_id=food-party-100288&page=0&superType=1&segments=%7B%7D&locale=fa"  # noqa
-
+    # override Host header based on party_url
+    HEADERS["Host"] = party_url.split("/")[2]
     response = requests.get(party_url, headers=HEADERS).json()
     if "error" in response:
         print(f"❗️ ERR: {response['error']}")
@@ -105,9 +99,7 @@ def get_and_send(name, lat, long, chat_id, threshold=0):
             ).hexdigest()
 
             if not TEST and product_hash in db:
-                if datetime.now(local_tz) - db[product_hash]["time"] < timedelta(
-                    hours=12
-                ):
+                if datetime.now(local_tz) - db[product_hash]["time"] < timedelta(hours=12):  # fmt: skip
                     continue
                 else:
                     db[product_hash] = {
@@ -131,13 +123,13 @@ def get_and_send(name, lat, long, chat_id, threshold=0):
             # fmt: on
 
             requests.post(
-                "https://api.telegram.org/bot"
+                CONFIG["telegram"].get("endpoint", "https://api.telegram.org/bot")
                 + CONFIG["telegram"]["token"]
                 + "/sendPhoto",
                 data={
                     "chat_id": chat_id,
                     "photo": product["main_image"]
-                    or "AgACAgQAAxkBAAEV5nxizWDCwfB7kJISN2LmC_Dwg6AmoAAC8bYxG-eiaFI2DjEulSjILgEAAwIAA3gAAykE",  # default image
+                    or "https://raw.githubusercontent.com/ahbanavi/goshne/main/resource/default.jpg",  # default image
                     "caption": out,
                     "parse_mode": "Markdown",
                     # add inline button
@@ -181,19 +173,19 @@ def main():
 
 if TEST:
     main()
-    sys.exit(0)
 
-print(f"Running app every {CONFIG['schedule']['mins']} minutes...")
-schedule.every(CONFIG["schedule"]["mins"]).minutes.do(main)
+else:
+    print(f"Running app every {CONFIG['schedule']['mins']} minutes...")
+    schedule.every(CONFIG["schedule"]["mins"]).minutes.do(main)
 
-while 1:
-    n = schedule.idle_seconds()
-    if n is None:
-        # no more jobs
-        break
-    elif n > 0:
-        # sleep exactly the right amount of time
-        time.sleep(n)
-    schedule.run_pending()
+    while 1:
+        n = schedule.idle_seconds()
+        if n is None:
+            # no more jobs
+            break
+        elif n > 0:
+            # sleep exactly the right amount of time
+            time.sleep(n)
+        schedule.run_pending()
 
 db.close()
