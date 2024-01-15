@@ -5,6 +5,8 @@ telegram:
 schedule:
   mins: 15
 
+timeout: 10 # optional - integer, http timeout in seconds, default is 10
+
 peoples:
   person_name: # at least one person is required, string
     chat_id: chat_id # required - integer
