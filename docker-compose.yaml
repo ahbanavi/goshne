@@ -3,7 +3,7 @@ version: "3.9"
 services:
   goshne:
     container_name: goshne_app
-    image: ahbanavi/goshne:latest
+    image: ghcr.io/ahbanavi/goshne:latest
     command: ["python", "main.py"]
     volumes:
       - ./storage:/usr/src/app/storage:rw

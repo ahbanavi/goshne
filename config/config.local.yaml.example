@@ -6,14 +6,14 @@ schedule:
   mins: 15
 
 peoples:
-  name-of-person: # at least one person is required, string
+  person_name: # at least one person is required, string
     chat_id: chat_id # required - integer
-    lat: lat # required - string
-    long: long # required - string
+    lat: lat # required
+    long: long # required
     threshold: 30 # optional - integer, defaults to 0
   
   # more people can be added here
-  name-of-another-person:
+  another_unique_person_name:
     chat_id: chat_id
     lat: lat
     long: long
