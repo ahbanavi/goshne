@@ -47,7 +47,7 @@ except FileNotFoundError:
 db = SqliteDict("storage/db.sqlite")
 
 
-def get_and_send(name, lat, long, chat_id, threshold=0):
+def get_and_send(name, lat, long, chat_id, threshold=0, timeout=10):
     """get data from snapp based on inputs and send to telegram
 
     Args:
@@ -56,18 +56,19 @@ def get_and_send(name, lat, long, chat_id, threshold=0):
         long (string): longitude
         chat_id (int): telegram chat id to send to
         threshold (int, optional): threshold for getting discounts, default is 0
+        timeout (int, optional): http timeout in seconds, default is 10
     """
     home_url = f"https://snappfood.ir/search/api/v1/desktop/new-home?lat={lat}&long={long}&optionalClient=WEBSITE&client=WEBSITE&deviceType=WEBSITE&appVersion=8.1.1&locale=fa"
 
     # get home page
     HEADERS["Host"] = "snappfood.ir"
     print(f"🕒 Downloading Offers for {name}")
-    home_page = requests.get(home_url, headers=HEADERS, timeout=CONFIG["timeout"])
+    home_page = requests.get(home_url, headers=HEADERS, timeout=timeout)
     if home_page.status_code != 200:
         print(f"❗️ ERR: {home_page.status_code}")
         if home_page.status_code == 403:
             print(
-                f"❗️ ERR: Our IP Address is blocked by Snappfood, please change your IP Address and try again"
+                "❗️ ERR: Our IP Address is blocked by Snappfood, please change your IP Address and try again"
             )
             exit(254)
         return False
@@ -84,10 +85,8 @@ def get_and_send(name, lat, long, chat_id, threshold=0):
 
     # override Host header based on party_url
     HEADERS["Host"] = party_url.split("/")[2]
-    print(f"🕒 Extracting Party Foods")
-    response = requests.get(
-        party_url, headers=HEADERS, timeout=CONFIG["timeout"]
-    ).json()
+    print("🕕 Extracting Party Foods")
+    response = requests.get(party_url, headers=HEADERS, timeout=timeout).json()
     if "error" in response:
         print(f"❗️ ERR: {response['error']}")
         return False
@@ -157,8 +156,10 @@ def get_and_send(name, lat, long, chat_id, threshold=0):
                         }
                     ),
                 },
-                timeout=CONFIG["timeout"],
+                timeout=timeout,
             )
+
+    print(f"🕘 Finished for {name}\n")
 
 
 # for each person in config peoples get_and_send
@@ -172,6 +173,7 @@ def main():
                 long=person["long"],
                 chat_id=person["chat_id"],
                 threshold=person.get("threshold", 0),
+                timeout=CONFIG.get("timeout", 10),
             )
 
             if TEST:
@@ -189,10 +191,14 @@ if TEST:
 
 else:
     print(
-        f"Running app every {CONFIG['schedule']['mins']} minutes... with Http Timeout of {CONFIG['timeout']} seconds"
+        "Running app every %d minutes, with Http Timeout of %d seconds...\n"
+        % (CONFIG["schedule"]["mins"], CONFIG.get("timeout", 10))
     )
     schedule.every(CONFIG["schedule"]["mins"]).minutes.do(main)
+
+    # run once at start
     main()
+
     while 1:
         n = schedule.idle_seconds()
         if n is None:
