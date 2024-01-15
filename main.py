@@ -136,7 +136,8 @@ def get_and_send(name, lat, long, chat_id, threshold=0):
                 + "/sendPhoto",
                 data={
                     "chat_id": chat_id,
-                    "photo": product["main_image"] or 'AgACAgQAAxkBAAEV5nxizWDCwfB7kJISN2LmC_Dwg6AmoAAC8bYxG-eiaFI2DjEulSjILgEAAwIAA3gAAykE', # default image
+                    "photo": product["main_image"]
+                    or "AgACAgQAAxkBAAEV5nxizWDCwfB7kJISN2LmC_Dwg6AmoAAC8bYxG-eiaFI2DjEulSjILgEAAwIAA3gAAykE",  # default image
                     "caption": out,
                     "parse_mode": "Markdown",
                     # add inline button
