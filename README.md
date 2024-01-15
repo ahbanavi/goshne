@@ -50,20 +50,20 @@ If you prefer to run Goshne without Docker, follow these steps:
 cd ..
 ```
 
-1. Create a virtual environment and activate it:
+2. Create a virtual environment and activate it:
 
 ```bash
 python3 -m venv venv
 source venv/bin/activate # For Linux and macOS, or use `venv\Scripts\activate.bat` for windows cmd and `venv\Scripts\Activate.ps1` for powershell.
 ```
 
-1. Install the required Python packages:
+3. Install the required Python packages:
 
 ```bash
 pip3 install -r requirements.txt
 ```
 
-1. Run Goshne:
+4. Run Goshne:
 
 ```bash
 python3 main.py
