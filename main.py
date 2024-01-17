@@ -123,14 +123,14 @@ def get_and_send(name, lat, long, chat_id, threshold=0, timeout=10):
             vendor_url = "https://snappfood.ir/restaurant/menu/" + product["vendorCode"]
             product_url = f"{vendor_url}?productId={product['id']}"
             # fmt: off
-            out = random.choice(FOOD_EMOJIS) + " " + party_hashtag + " [" + product["title"] + "](" + vendor_url+ ")\n" # noqa
-            out += "🍽 " + product["vendorTypeTitle"] + " " + product["vendorTitle"] + "\n\n"
-            out += "🛍 ‏*" + str(product["discountRatio"]) + "%*\n"
+            out = random.choice(FOOD_EMOJIS) + " [" + product["title"] + "](" + product_url + ")\n" # noqa
+            out += "🍽 [" + product["vendorTypeTitle"] + " " + product["vendorTitle"] + "](" + vendor_url + ") \n\n"
+            out += "🛍 ‏" + party_hashtag + " *" + str(product["discountRatio"]) + "%*\n"
             out += "💵 *" + TOMAN_FORMATTER.format(product["price"]) + "* ت\n"
             out += "💸 *" + TOMAN_FORMATTER.format(int(discount_price)) + "* ت (" + TOMAN_FORMATTER.format(int(product["price"] - discount_price)) + "-)\n" # noqa
             out += "🛵 *" + TOMAN_FORMATTER.format(int(product["deliveryFee"])) + "* ت\n\n"
             out += "⭐️ " + str(round(product["rating"], 2)) + " از " + str(product["vote_count"]) + " رای \n"
-            out += "⌛ ‏" + str(product["remaining"]) + "\n"
+            out += "⌛ ‏" + str(product["remaining"]) + " تا مونده\n"
             # fmt: on
             print(f"📤 Sending {product['title']} to {name}")
             requests.post(
