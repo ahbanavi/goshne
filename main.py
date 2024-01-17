@@ -121,6 +121,7 @@ def get_and_send(name, lat, long, chat_id, threshold=0, timeout=10):
                 }
 
             vendor_url = "https://snappfood.ir/restaurant/menu/" + product["vendorCode"]
+            product_url = f"{vendor_url}?productId={product['id']}"
             # fmt: off
             out = random.choice(FOOD_EMOJIS) + " " + party_hashtag + " [" + product["title"] + "](" + vendor_url+ ")\n" # noqa
             out += "🍽 " + product["vendorTypeTitle"] + " " + product["vendorTitle"] + "\n"
@@ -148,9 +149,13 @@ def get_and_send(name, lat, long, chat_id, threshold=0, timeout=10):
                             "inline_keyboard": [
                                 [
                                     {
-                                        "text": "🛒 خرید",
+                                        "text": "🛍️ خرید محصول",
+                                        "url": product_url,
+                                    },
+                                    {
+                                        "text": "🍽 منو " + product["vendorTypeTitle"],
                                         "url": vendor_url,
-                                    }
+                                    },
                                 ]
                             ]
                         }
