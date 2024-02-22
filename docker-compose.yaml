@@ -3,6 +3,7 @@ version: "3.9"
 services:
   goshne:
     container_name: goshne_app
+    restart: always
     environment:
       - PYTHONUNBUFFERED=1
     image: ghcr.io/ahbanavi/goshne:latest
