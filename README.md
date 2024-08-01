@@ -1,5 +1,7 @@
 # Goshne
 
+[داکیومنت فارسی](README_FA.md)
+
 Welcome to Goshne! Your new best friend in the quest for delicious deals. We dive into the depths of the [Snappfood](https://snappfood.ir/) website, wrestle with discounts (Food party and other parties), and deliver them straight to your Telegram (in your private messages or a Telegram channel of your choice). Perfect for all the foodie adventurers and bargain ninjas out there! Get ready to discover mouth-watering deals and share the joy with your network. Let the food hunt begin!
 
 <img src="resource/screenshot.png" alt="screenshot of Goshne in action" width="33%" />
